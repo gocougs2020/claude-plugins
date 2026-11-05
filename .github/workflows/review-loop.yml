@@ -1,0 +1,119 @@
+name: Review Loop (shared)
+
+# Reusable Review Loop gate, called from each repository's
+# .github/workflows/review-loop.yml (template: templates/workflows/). When a
+# ready pull request's reviews and checks have all finished, this decides
+# whether anything needs fixing: a failed check (Claude Review fails while a
+# 🔴 finding is open) or new Vercel Agent / Vercel Security Review comments on
+# the head commit. If so, it starts the repository's review-loop-fix.yml for
+# that commit. The fixer's push starts the reviews again, and this runs again
+# when they finish, until the head is clean or the round cap is reached.
+#
+# The caller's triggers (workflow_run on the repo's CI names, check_run,
+# pull_request_review) live in the calling repository, because those events
+# only fire for workflows on the repository's default branch.
+
+on:
+  workflow_call:
+    inputs:
+      max_rounds:
+        description: Automatic fix rounds per pull request before handing back to a person.
+        type: number
+        default: 3
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: read
+  issues: write
+  actions: write
+
+jobs:
+  review-loop-gate:
+    if: >-
+      (github.event_name == 'workflow_run' && github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.pull_requests[0] != null) ||
+      (github.event_name == 'check_run' && github.event.check_run.app.slug == 'vercel' && github.event.check_run.pull_requests[0] != null) ||
+      (github.event_name == 'pull_request_review' && github.event.review.user.login == 'vercel[bot]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      # One check per pull request at a time. A newer event replaces one
+      # still waiting, so a burst of check completions becomes one check.
+      group: review-loop-${{ github.repository }}-${{ github.event.pull_request.number || github.event.check_run.pull_requests[0].number || github.event.workflow_run.pull_requests[0].number || github.run_id }}
+      cancel-in-progress: false
+    env:
+      GH_TOKEN: ${{ github.token }}
+      # No checkout in this job, so gh needs the repository named for
+      # `gh workflow run`.
+      GH_REPO: ${{ github.repository }}
+      REPO: ${{ github.repository }}
+      PR: ${{ github.event.pull_request.number || github.event.check_run.pull_requests[0].number || github.event.workflow_run.pull_requests[0].number }}
+      MAX_ROUNDS: ${{ vars.REVIEW_LOOP_MAX_ROUNDS || inputs.max_rounds }}
+    steps:
+      - name: Decide whether to fix
+        run: |
+          set -euo pipefail
+
+          pr_json=$(gh api "repos/$REPO/pulls/$PR")
+          state=$(jq -r '.state' <<<"$pr_json")
+          draft=$(jq -r '.draft' <<<"$pr_json")
+          sha=$(jq -r '.head.sha' <<<"$pr_json")
+          branch=$(jq -r '.head.ref' <<<"$pr_json")
+          head_repo=$(jq -r '.head.repo.full_name' <<<"$pr_json")
+          off=$(jq -r '[.labels[].name] | index("review-loop:off") != null' <<<"$pr_json")
+
+          if [ "$state" != "open" ] || [ "$draft" != "false" ] || [ "$head_repo" != "$REPO" ] || [ "$off" = "true" ]; then
+            echo "Skipped: state=$state draft=$draft head_repo=$head_repo review-loop:off=$off"
+            exit 0
+          fi
+
+          # Trust only markers this workflow and the fixer posted, so a
+          # commenter cannot forge a handled or stopped state.
+          markers=$(gh api "repos/$REPO/issues/$PR/comments?per_page=100" --paginate \
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- review-loop:"))) | .body' \
+            | grep -o '<!-- review-loop:[a-z]* [0-9a-f]*' || true)
+          handled=$(grep '^<!-- review-loop:handled ' <<<"$markers" | awk '{print $3}' | sort -u || true)
+
+          if grep -qx "$sha" <<<"$handled"; then
+            echo "Skipped: $sha was already handled."
+            exit 0
+          fi
+
+          # Wait until every review and check on this commit has finished.
+          # The last one to finish starts this workflow again.
+          checks=$(gh api "repos/$REPO/commits/$sha/check-runs?per_page=100" --paginate \
+            --jq '.check_runs[] | select(.name | startswith("review-loop") | not) | [.name, .status, (.conclusion // "")] | @tsv')
+          pending=$(awk -F'\t' '$2 != "completed" {print $1}' <<<"$checks")
+          if [ -n "$pending" ]; then
+            echo "Waiting on: $(tr '\n' ',' <<<"$pending")"
+            exit 0
+          fi
+
+          failed=$(awk -F'\t' '$3 == "failure" || $3 == "timed_out" || $3 == "action_required" {print $1}' <<<"$checks")
+          vercel_comments=$(gh api "repos/$REPO/pulls/$PR/comments?per_page=100" --paginate \
+            --jq "[.[] | select(.user.login == \"vercel[bot]\" and .original_commit_id == \"$sha\" and .in_reply_to_id == null)] | length" \
+            | awk '{s += $1} END {print s + 0}')
+
+          if [ -z "$failed" ] && [ "$vercel_comments" -eq 0 ]; then
+            echo "Clean: no failed checks and no new Vercel comments on $sha."
+            exit 0
+          fi
+          echo "Failed checks: $(tr '\n' ',' <<<"$failed")"
+          echo "New Vercel comments: $vercel_comments"
+
+          rounds=$(grep -c . <<<"$handled" || true)
+          if [ "$rounds" -ge "$MAX_ROUNDS" ]; then
+            if ! grep -q '^<!-- review-loop:stopped' <<<"$markers"; then
+              body=$(printf '%s\n\n%s\n\n%s' \
+                "Review Loop stopped after $rounds automatic fix rounds, and findings or failed checks are still open on \`${sha:0:7}\`." \
+                "It will not run again on this pull request. A person or a Claude session needs to take it from here, for example by commenting \`@claude fix the open review findings\`." \
+                "<!-- review-loop:stopped $sha -->")
+              gh api "repos/$REPO/issues/$PR/comments" -f body="$body" > /dev/null
+            fi
+            echo "Stopped: round cap $MAX_ROUNDS reached."
+            exit 0
+          fi
+
+          gh workflow run review-loop-fix.yml \
+            -f pr="$PR" -f sha="$sha" -f branch="$branch" -f round="$((rounds + 1))"
+          echo "Started fix round $((rounds + 1)) for $sha."

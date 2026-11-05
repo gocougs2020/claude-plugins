@@ -35,24 +35,31 @@ Ask which tier when the user did not say. Do every step in one draft pull reques
 
 ## Full only
 
-4. **Copy the workflows** from this skill's `assets/workflows/` into `.github/workflows/`, unchanged:
+The review, gate, fixer, and `@claude` workflows live once in this repository's `.github/workflows/` as reusable workflows. A repository gets thin caller files that point at them, so changing a shared workflow updates every repository on its next pull request event. Nothing is copied.
+
+4. **Add the callers** from this skill's `assets/workflows/` into `.github/workflows/`:
    - `claude-review.yml`
    - `review-loop.yml`
    - `review-loop-fix.yml`
    - `claude.yml`
-5. **Match the repository:**
-   - **CI names.** In `review-loop.yml`, set `on.workflow_run.workflows` to `Claude Review` plus the `name:` of each CI workflow the repository has.
-   - **Node version.** In `claude.yml`, set `node-version` to the repository's Node version. For the fixer, tell the user to set the repository variable `REVIEW_LOOP_NODE_VERSION` if it is not 22.
-   - **Package manager.** Both workflows run `corepack enable`, so pnpm and yarn work when `package.json` has a `packageManager` field. If the repository uses pnpm or yarn without that field, add it (for example `"packageManager": "pnpm@10.0.0"`, matching the lockfile).
-   - **No CI.** If the repository has no CI workflows, `workflows` is just `["Claude Review"]`. Then the fixer's checks are its only test run, so the `AGENTS.md` commands matter more.
-   - **Existing files.** If the repository already has a workflow with one of these names, compare it with the asset, keep its repository-specific lines, and say what you changed.
-6. **Write `REVIEW.md`** from `assets/REVIEW.md`. Replace the "Always check" section with the repository's real risks: read its auth, data access, payment or messaging code, deploy setup, and test layout first. Keep it short; generic advice belongs in the `pr-review` skill, not here.
+5. **Match the repository** (edit only the callers):
+   - **CI names.** In `review-loop.yml`, set `on.workflow_run.workflows` to `Claude Review` plus the `name:` of each CI workflow the repository has. With no CI workflows, it is just `["Claude Review"]`, and the `AGENTS.md` commands matter more because the fixer's checks are the only test run.
+   - **Node version.** In `review-loop-fix.yml` and `claude.yml`, set `node_version` to the repository's Node version.
+   - **Model.** The review runs on `claude-sonnet-5-5`. For a low-risk repository, uncomment `model: claude-haiku-5-5` in `claude-review.yml` to cut cost further.
+   - **Package manager.** The shared workflows run `corepack enable`, so pnpm and yarn work when `package.json` has a `packageManager` field. If the repository uses pnpm or yarn without that field, add it (for example `"packageManager": "pnpm@10.0.0"`, matching the lockfile).
+   - **Existing files.** If the repository already has full copies of these workflows, replace them with the callers, carry any repository-specific values into the caller inputs, and say what you changed.
+6. **Write `REVIEW.md`** from `assets/REVIEW.md`. Replace the "Always check" section with the repository's real risks: read its auth, data access, payment or messaging code, deploy setup, and test layout first. Keep it short; generic advice belongs in the `pr-review` skill, not here. Keep an existing `REVIEW.md`.
 7. **Add one line** to `AGENTS.md` or `CLAUDE.md`: "Pull requests follow Review Loop Full (steward skill from the review-loop plugin)."
 8. **Tell the user what only they can do:**
    - Add the repository secret `CLAUDE_CODE_OAUTH_TOKEN` under Settings → Secrets and variables → Actions, from `claude setup-token`. Personal accounts cannot share secrets, so each Full repository needs its own. Do not also set `ANTHROPIC_API_KEY` unless they want per-token API billing.
-   - The workflows start working only after the install pull request merges, because `workflow_run` and `check_run` use the default branch's copy.
+   - The callers start working only after the install pull request merges, because `workflow_run` and `check_run` use the default branch's copy.
+   - Make `review / review` and the CI jobs required checks in a branch ruleset for the default branch.
    - After that, on the first pull request marked ready, check that a "Review Loop" run appears once the checks finish. On the first fix round, check that the push came from the Claude app and started CI again.
 
 ## Upgrading
 
-To upgrade a repository's workflows, diff its copies against `assets/workflows/` and apply the changes, keeping the lines step 5 changed. The assets pin each action to a full commit SHA with its version in a comment; keep the pins when copying. Plugin skills update on their own through the marketplace.
+Shared workflow changes need no per-repository step: callers use `@main`. Only a change to a caller template (new trigger, new input) needs each repository's caller updated. To roll a shared change out more carefully, point callers at a tag instead of `@main`.
+
+## Cloud sessions
+
+Cloud sessions (claude.ai/code) ignore the marketplaces in `.claude/settings.json`, so these plugins do not load there from the repository alone. Tell the user once to paste `templates/cloud-setup.sh` from `gocougs2020/claude-plugins` into their cloud environment's setup script. It covers every repository in that environment.
