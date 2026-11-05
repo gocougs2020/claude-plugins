@@ -98,8 +98,16 @@ jobs:
                gone on this head, reply on its thread with
                `gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments/<id>/replies -f body='Fixed as of <short sha>. <!-- claude-review -->'`.
                Do not reply to a thread you already marked fixed.
-            4. Post or update one summary comment with
-               `gh pr comment ${{ github.event.pull_request.number }} --edit-last --create-if-none --body '<summary>'`.
+            4. Post or update one summary comment. Find the existing one:
+               the PR comment from github-actions[bot] whose body contains
+               `<!-- claude-review -->`, in
+               `gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments --paginate`.
+               Update it with
+               `gh api -X PATCH repos/${{ github.repository }}/issues/comments/<id> -f body='<summary>'`,
+               or create it with
+               `gh pr comment ${{ github.event.pull_request.number }} --body '<summary>'`
+               when there is none. Never edit any other comment: Review Loop
+               posts its round comments as the same bot, and they must stay.
                The summary has the counts of open 🔴, 🟡, and 🟣 findings
                on this head (new and still-open earlier ones), one line per
                open 🔴 finding, and `<!-- claude-review -->` at the end.
