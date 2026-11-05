@@ -1,0 +1,21 @@
+{
+  "name": "gocougs",
+  "owner": {
+    "name": "gocougs2020"
+  },
+  "metadata": {
+    "description": "Shared Claude Code plugins for gocougs2020 repositories: the pull request review and fix workflow, and general web design and accessibility practices."
+  },
+  "plugins": [
+    {
+      "name": "review-loop",
+      "source": "./plugins/review-loop",
+      "description": "Drive a pull request to green: review and fix before each push, open drafts, mark ready once, let reviewers and Review Loop fix findings, and install Review Loop's GitHub workflows."
+    },
+    {
+      "name": "web-design",
+      "source": "./plugins/web-design",
+      "description": "General web design, accessibility, and React/Next.js performance practices from Vercel, applied when building or reviewing UI."
+    }
+  ]
+}
