@@ -63,7 +63,7 @@ The callers pass `CLAUDE_CODE_OAUTH_TOKEN` (or `ANTHROPIC_API_KEY`) explicitly, 
 
 ### Releasing workflows
 
-1. Merge the change to `main`.
+1. Merge the change to `main` once the `Validate` check passes (actionlint on the shared workflows and caller templates, `claude plugin validate`, and the push hook tests).
 2. Try it from one repository first: point that repository's caller at the new commit SHA (`...@<sha>`) on a test pull request, and check a review run, a fix round, and an `@claude` run.
 3. Move the tag:
 
