@@ -8,4 +8,5 @@ This repository is a Claude Code plugin marketplace (`.claude-plugin/marketplace
 - Prefer built-in Claude Code commands and official Anthropic or Vercel skills over writing our own. Vendored third-party skills keep their license notice and source. Never edit them; replace them with a newer upstream copy.
 - When you change a plugin, raise its `version` in `.claude-plugin/plugin.json`, then run `claude plugin validate .` and `claude plugin validate plugins/<name>`, and fix what they report.
 - A change to a workflow in `plugins/review-loop/skills/install-review-loop/assets/workflows/` reaches a repository only when someone upgrades its copy. Say so in the commit message.
+- Workflow assets pin every action to a full commit SHA with the release in a trailing comment (`uses: owner/action@<sha> # v1.2.3`). To bump one, take the SHA of the release tag (`git ls-remote --tags https://github.com/owner/action.git`, using the `^{}` line for an annotated tag) and update the comment too.
 - Test hook scripts by piping sample hook JSON into them (see `plugins/review-loop/README.md`).
