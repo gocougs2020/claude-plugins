@@ -1,8 +1,7 @@
 name: Validate
 
-# Checks this repository's own changes. The shared workflows in this folder
-# run in every repository that calls them at @v1, so a broken one must not
-# reach main and get tagged.
+# Checks this repository's own changes: workflow syntax, plugin manifests,
+# and the push hook's behavior.
 
 on:
   pull_request:
@@ -28,9 +27,7 @@ jobs:
         run: |
           set -euo pipefail
           bash <(curl -fsSL "https://raw.githubusercontent.com/rhysd/actionlint/$ACTIONLINT_REF/scripts/download-actionlint.bash") "$ACTIONLINT_VERSION"
-          ./actionlint -color \
-            .github/workflows/*.yml \
-            plugins/review-loop/skills/install-review-loop/assets/workflows/*.yml
+          ./actionlint -color .github/workflows/*.yml
 
       - name: Setup Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
@@ -63,6 +60,8 @@ jobs:
           : > "$stamp"
           # In GitHub Actions every push is allowed.
           [ -z "$(GITHUB_ACTIONS=true bash "$hook" <<<"$input")" ] || { echo "::error::Hook blocked a CI push."; exit 1; }
+          # Words "git push" inside a string are not a push.
+          [ -z "$(env -u GITHUB_ACTIONS bash "$hook" <<<'{"tool_input":{"command":"echo '"'"'it allows `git push` only'"'"'"}}')" ] || { echo "::error::Hook blocked a command that only mentions git push."; exit 1; }
           # A command that does not push passes through.
           [ -z "$(env -u GITHUB_ACTIONS bash "$hook" <<<'{"tool_input":{"command":"git status"}}')" ] || { echo "::error::Hook blocked a non-push command."; exit 1; }
 

@@ -1,7 +1,7 @@
 {
   "name": "review-loop",
-  "version": "1.3.0",
-  "description": "Drive a pull request to green: review and fix before each push, open drafts, mark ready once, let reviewers and Review Loop fix findings, and install Review Loop's GitHub workflows.",
+  "version": "2.0.0",
+  "description": "Check a branch before every push: merge the default branch, catch overlap with other open pull requests, run the checks, review for bugs and security, and fix. A hook blocks Claude's git push until that commit was checked.",
   "author": {
     "name": "gocougs2020"
   }

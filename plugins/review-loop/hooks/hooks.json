@@ -1,5 +1,5 @@
 {
-  "description": "Blocks a Claude git push until the pr-review skill has reviewed that exact commit.",
+  "description": "Blocks a Claude git push until the pre-push skill has reviewed that exact commit.",
   "hooks": {
     "PreToolUse": [
       {
