@@ -6,6 +6,12 @@ set -uo pipefail
 
 input=$(cat)
 
+# CI runs (Review Loop's fixer, @claude) push without a local pr-review stamp,
+# so the hook only guards interactive sessions.
+if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+  exit 0
+fi
+
 # Only act on commands that push. Matches `git push` and `git -C <dir> push`.
 if ! grep -Eq 'git( +-C +[^ ]+)? +push( |"|$)' <<<"$input"; then
   exit 0
