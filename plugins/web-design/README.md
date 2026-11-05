@@ -4,7 +4,7 @@ General web interface, accessibility, and React/Next.js performance practice. It
 
 | Skill | Source | Use |
 |---|---|---|
-| `design-review` | ours | Runs the two skills below on the UI files a change touches, checks consistency with the repository's design system and responsive layout, then fixes what it confirms. `steward` runs it before a push that changes UI. |
+| `design-review` | ours | Runs the two skills below on the UI files a change touches, checks consistency with the repository's design system and responsive layout, then fixes what it confirms. The review-loop plugin's `pre-push` skill runs it before a push that changes UI. |
 | `web-design-guidelines` | Vercel ([web-interface-guidelines](https://github.com/vercel-labs/web-interface-guidelines)) | Fetches Vercel's current guidelines each run. Has a WCAG 2.2 AA fallback checklist for when the fetch fails. |
 | `vercel-react-best-practices` | Vercel ([agent-skills](https://github.com/vercel-labs/agent-skills)), MIT, vendored unchanged | 45 React and Next.js performance rules by priority. See its `NOTICE.md`. |
 

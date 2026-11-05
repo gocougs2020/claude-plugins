@@ -1,0 +1,75 @@
+name: Validate
+
+# Checks this repository's own changes: workflow syntax, plugin manifests,
+# and the push hook's behavior.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Lint workflows
+        env:
+          # actionlint v1.7.7; the download script is pinned to that tag's commit.
+          ACTIONLINT_REF: 03d0035246f3e81f36aed592ffb4bebf33a03106
+          ACTIONLINT_VERSION: 1.7.7
+        run: |
+          set -euo pipefail
+          bash <(curl -fsSL "https://raw.githubusercontent.com/rhysd/actionlint/$ACTIONLINT_REF/scripts/download-actionlint.bash") "$ACTIONLINT_VERSION"
+          ./actionlint -color .github/workflows/*.yml
+
+      - name: Setup Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 22
+
+      - name: Validate plugins
+        run: |
+          set -euo pipefail
+          npm install -g @anthropic-ai/claude-code@2.1.304
+          claude plugin validate .
+          for dir in plugins/*/; do
+            claude plugin validate "$dir"
+          done
+
+      - name: Test the push hook
+        run: |
+          set -euo pipefail
+          hook=plugins/review-loop/hooks/require-review-before-push.sh
+          input='{"cwd":"'"$PWD"'","tool_input":{"command":"git push"}}'
+          stamp="$(git rev-parse --absolute-git-dir)/review-loop/reviewed"
+          mkdir -p "$(dirname "$stamp")"
+          # Outside CI, an unreviewed HEAD is denied.
+          : > "$stamp"
+          out=$(env -u GITHUB_ACTIONS bash "$hook" <<<"$input")
+          grep -q '"permissionDecision":"deny"' <<<"$out" || { echo "::error::Hook did not deny an unreviewed push."; exit 1; }
+          # A reviewed HEAD is allowed.
+          git rev-parse HEAD > "$stamp"
+          [ -z "$(env -u GITHUB_ACTIONS bash "$hook" <<<"$input")" ] || { echo "::error::Hook denied a reviewed push."; exit 1; }
+          : > "$stamp"
+          # In GitHub Actions every push is allowed.
+          [ -z "$(GITHUB_ACTIONS=true bash "$hook" <<<"$input")" ] || { echo "::error::Hook blocked a CI push."; exit 1; }
+          # Words "git push" inside a string are not a push. The backticks are
+          # literal text in the hook input, not a command substitution.
+          # shellcheck disable=SC2016
+          [ -z "$(env -u GITHUB_ACTIONS bash "$hook" <<<'{"tool_input":{"command":"echo '"'"'it allows `git push` only'"'"'"}}')" ] || { echo "::error::Hook blocked a command that only mentions git push."; exit 1; }
+          # A command that does not push passes through.
+          [ -z "$(env -u GITHUB_ACTIONS bash "$hook" <<<'{"tool_input":{"command":"git status"}}')" ] || { echo "::error::Hook blocked a non-push command."; exit 1; }
+
+      - name: Check shell scripts parse
+        run: |
+          set -euo pipefail
+          for f in plugins/*/hooks/*.sh templates/*.sh; do
+            bash -n "$f"
+          done

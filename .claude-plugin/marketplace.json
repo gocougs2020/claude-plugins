@@ -4,13 +4,13 @@
     "name": "gocougs2020"
   },
   "metadata": {
-    "description": "Shared Claude Code plugins for gocougs2020 repositories: the pull request review and fix workflow, and general web design and accessibility practices."
+    "description": "Shared Claude Code plugins for gocougs2020 repositories: the pre-push check, and general web design and accessibility practices."
   },
   "plugins": [
     {
       "name": "review-loop",
       "source": "./plugins/review-loop",
-      "description": "Drive a pull request to green: review and fix before each push, open drafts, mark ready once, let reviewers and Review Loop fix findings, and install Review Loop's GitHub workflows."
+      "description": "Check a branch before every push: merge the default branch, catch overlap with other open pull requests, run the checks, review for bugs and security, and fix. A hook blocks Claude's git push until that commit was checked."
     },
     {
       "name": "web-design",

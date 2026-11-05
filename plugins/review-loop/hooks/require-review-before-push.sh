@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 # PreToolUse hook for Bash. When the command runs `git push`, deny it unless
-# the pr-review skill recorded the current HEAD in
+# the pre-push skill recorded the current HEAD in
 # <git dir>/review-loop/reviewed. Any other command passes through.
 set -uo pipefail
 
 input=$(cat)
 
-# CI runs (Review Loop's fixer, @claude) push without a local pr-review stamp,
+# CI jobs push without a local pre-push stamp,
 # so the hook only guards interactive sessions.
 if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
   exit 0
 fi
 
 # Only act on commands that push. Matches `git push` and `git -C <dir> push`.
-if ! grep -Eq 'git( +-C +[^ ]+)? +push( |"|$)' <<<"$input"; then
+if ! grep -Eq '("|[;&|(]|\\n)[[:space:]]*(cd +[^ ;&|"]+ *&& *)?git( +-C +[^ ]+)? +push( |"|$|\\n)' <<<"$input"; then
   exit 0
 fi
 
@@ -44,6 +44,6 @@ if [ -f "$stamp" ] && [ "$(tr -d '[:space:]' < "$stamp")" = "$head" ]; then
   exit 0
 fi
 
-reason="Review before pushing: HEAD ${head:0:7} has not been reviewed. Follow the steward skill's \"Before every push\": run the checks, /simplify, and the pr-review skill, commit the fixes, and pr-review records HEAD in ${stamp}. Then push again. Only if the user explicitly said to push without review, write HEAD to that file yourself and say so."
+reason="Review before pushing: HEAD ${head:0:7} has not been reviewed. Run the pre-push skill (merge the default branch, check overlapping pull requests, run the checks, review for bugs and security, fix, commit); it records HEAD in ${stamp}. Then push again. Only if the user explicitly said to push without review, write HEAD to that file yourself and say so."
 printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"%s"}}\n' "${reason//\"/\\\"}"
 exit 0

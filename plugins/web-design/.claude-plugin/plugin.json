@@ -1,6 +1,6 @@
 {
   "name": "web-design",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "General web design, accessibility, and React/Next.js performance practices from Vercel, applied when building or reviewing UI.",
   "author": {
     "name": "gocougs2020"
