@@ -38,6 +38,9 @@ jobs:
         with:
           node-version: 22
 
+      - name: Enable pnpm and yarn
+        run: corepack enable
+
       - name: Run Claude
         uses: anthropics/claude-code-action@v1
         with:
@@ -45,5 +48,5 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_args: |
             --max-turns 100
-            --allowedTools "Bash(npm ci:*),Bash(npm run lint:*),Bash(npm test:*),Bash(npm run test:unit:*),Bash(npm run validate:ai-docs-sync:*),Bash(git diff:*),Bash(git log:*),Bash(git status:*)"
-            --append-system-prompt "Follow AGENTS.md and REVIEW.md. When asked to fix Claude Review findings, read every open comment containing <!-- claude-review --> on the PR, fix each 🔴 finding, and fix 🟡 findings only when the fix is small and plainly correct. Run the checks AGENTS.md names for each package you touch (npm ci --ignore-scripts first) and push only when they pass. Reply on each 🔴 thread with what changed, or why it was not changed."
+            --allowedTools "Bash(npm ci:*),Bash(npm install:*),Bash(npm run:*),Bash(npm test:*),Bash(pnpm install:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm -r:*),Bash(pnpm --filter:*),Bash(yarn install:*),Bash(yarn run:*),Bash(yarn test:*),Bash(git diff:*),Bash(git log:*),Bash(git status:*)"
+            --append-system-prompt "Follow AGENTS.md and REVIEW.md. When asked to fix Claude Review findings, read every open comment containing <!-- claude-review --> on the PR, fix each 🔴 finding, and fix 🟡 findings only when the fix is small and plainly correct. Install dependencies with the package manager the lockfile shows (npm ci --ignore-scripts, pnpm install --frozen-lockfile, or yarn install --frozen-lockfile), run the checks AGENTS.md names for each package you touch, and push only when they pass. Reply on each 🔴 thread with what changed, or why it was not changed."

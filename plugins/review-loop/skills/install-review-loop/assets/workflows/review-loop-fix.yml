@@ -93,6 +93,10 @@ jobs:
         with:
           node-version: ${{ vars.REVIEW_LOOP_NODE_VERSION || '22' }}
 
+      - name: Enable pnpm and yarn
+        if: steps.guard.outputs.skip != 'true'
+        run: corepack enable
+
       - name: Configure git
         if: steps.guard.outputs.skip != 'true'
         run: |
@@ -143,8 +147,11 @@ jobs:
             3. Fix every real finding and every failed check, keeping each fix
                to what the finding needs. Never skip, disable, or weaken a
                test, and never edit files under .github/workflows/.
-            4. Run the checks the project rules name for each package you
-               touched, and fix what they report.
+            4. Install dependencies with the package manager the lockfile
+               shows (npm ci --ignore-scripts, pnpm install --frozen-lockfile,
+               or yarn install --frozen-lockfile), then run the checks the
+               project rules name for each package you touched, and fix what
+               they report.
             5. Commit with clear messages. Then push once:
                - First re-read the PR with
                  `gh api repos/${{ github.repository }}/pulls/${{ inputs.pr }}`.
@@ -165,7 +172,7 @@ jobs:
             findings you fixed, how many you declined, and a short summary.
           claude_args: |
             --max-turns 120
-            --allowedTools "Read,Edit,Write,Grep,Glob,Bash(git add:*),Bash(git commit:*),Bash(git push origin HEAD:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git status:*),Bash(git merge-base:*),Bash(gh api:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh run view:*),Bash(npm ci:*),Bash(npm run:*),Bash(npm test:*)"
+            --allowedTools "Read,Edit,Write,Grep,Glob,Bash(git add:*),Bash(git commit:*),Bash(git push origin HEAD:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git status:*),Bash(git merge-base:*),Bash(gh api:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh run view:*),Bash(npm ci:*),Bash(npm install:*),Bash(npm run:*),Bash(npm test:*),Bash(pnpm install:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm -r:*),Bash(pnpm --filter:*),Bash(yarn install:*),Bash(yarn run:*),Bash(yarn test:*)"
             --disallowedTools "Bash(git push --force:*),Bash(git push -f:*),Bash(git push --force-with-lease:*)"
             --json-schema '{"type":"object","properties":{"fixed":{"type":"integer","minimum":0},"declined":{"type":"integer","minimum":0},"summary":{"type":"string"}},"required":["fixed","declined","summary"]}'
 
