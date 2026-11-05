@@ -60,7 +60,11 @@ To make a further change after that, convert it back to a draft first. On Full, 
 - When the reviews and checks finish, it fixes every finding and failed check in one push.
 - It records each round in a PR comment containing `<!-- review-loop:handled`, and repeats until clean, for at most 3 rounds.
 - Do not fix findings or failed checks yourself while it runs, or you will push over each other.
-- Take over only when it posts `<!-- review-loop:stopped`, when a round says it did not finish, or when the user asks. Add the `review-loop:off` label first.
+- Take over only when one of these happens, and add the `review-loop:off` label first:
+  - it posts `<!-- review-loop:stopped`;
+  - a round says it did not finish;
+  - a round made no push but checks are still failing. For example, it declined a 🔴 finding as not a bug, and Claude Review stays red until someone pushes. Check its reasoning. If it holds, tell the user the finding needs their call.
+  - the user asks.
 
 **Lite, or Full after you take over:**
 1. Collect the open findings on the current head:

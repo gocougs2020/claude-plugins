@@ -1,7 +1,7 @@
 ---
 name: pr-review
 description: Review a branch or pull request for bugs, security and data-access gaps, behavior changes the description does not state, and slop the diff adds, using the repository's REVIEW.md when it has one. Then fix what it confirms. Run it before every push, and when asked to review a branch or pull request.
-allowed-tools: Read, Grep, Glob, Edit, Write, Bash(git rev-parse:*), Bash(git diff:*), Bash(git log:*), Bash(git show:*), Bash(git merge-base:*), Bash(git status:*), Bash(gh pr view:*), Bash(gh pr diff:*)
+allowed-tools: Read, Grep, Glob, Edit, Write, Bash(git rev-parse:*), Bash(mkdir:*), Bash(git diff:*), Bash(git log:*), Bash(git show:*), Bash(git merge-base:*), Bash(git status:*), Bash(gh pr view:*), Bash(gh pr diff:*)
 ---
 
 # PR review
@@ -65,7 +65,7 @@ Use `REVIEW.md`'s severity when it has one. Otherwise:
 1. Fix every 🔴 finding, and every 🟡 finding whose fix is small and plainly correct. Leave 🟣 alone; mention them instead.
 2. Run the project's checks for what you touched.
 3. Review the new diff once more.
-4. Commit the fixes. When no 🔴 finding is left, record the reviewed commit: write the output of `git rev-parse HEAD` to `<git dir>/review-loop/reviewed`, where `<git dir>` is the output of `git rev-parse --absolute-git-dir`. The review-loop plugin's push hook allows `git push` only for that exact commit, so a later commit needs another review.
+4. Commit the fixes. When no 🔴 finding is left, record the reviewed commit with Bash: `d="$(git rev-parse --absolute-git-dir)/review-loop" && mkdir -p "$d" && git rev-parse HEAD > "$d/reviewed"`. The review-loop plugin's push hook allows `git push` only for that exact commit, so a later commit needs another review.
 5. Report what you fixed, and which 🟡 and 🟣 findings remain and why.
 
 **Review only** (asked to review, or reviewing someone else's pull request): list the findings, 🔴 first, without changing code. Give each one:
