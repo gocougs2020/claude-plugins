@@ -49,6 +49,8 @@ Ask which tier when the user did not say. Do every step in one draft pull reques
    - **Node version.** In `claude.yml`, set `node_version`. For the fixer, add `node_version: "<version>"` under `with:` in `review-loop-fix.yml` (or set the repository variable `REVIEW_LOOP_NODE_VERSION`) if it is not 22.
    - **Tools for `@claude`.** To narrow what `@claude` may run, pass `allowed_tools` in `claude.yml` with the repository's own commands.
    - **Plugins in CI (optional).** Pass `plugin_marketplaces` (Git URLs, one per line) and `plugins` (`name@marketplace`, one per line) to `claude-review.yml` to let the review use extra review skills, for example `https://github.com/gocougs2020/claude-plugins.git` and `web-design@gocougs` for a repository with UI.
+   - **Model.** Leave `model` unset to use claude-code-action's default. Set it (for example a cheaper model on the review of a low-risk repository) only when the user asks.
+   - **Docs-only pull requests.** The review passes without running when only Markdown, text, or lockfiles changed. If Markdown in the repository is code (prompts, AI instructions, docs the app loads), pass `skip_docs_only: false` to `claude-review.yml`.
    - **Package manager.** The shared workflows run `corepack enable`, so pnpm and yarn work when `package.json` has a `packageManager` field. If the repository uses pnpm or yarn without that field, add it (for example `"packageManager": "pnpm@10.0.0"`, matching the lockfile).
    - **Existing files.** If the repository already has a workflow with one of these names, replace it with the caller, move its repository-specific lines into the caller's inputs, and say what you changed.
 6. **Write `REVIEW.md`** from `assets/REVIEW.md`. Replace the "Always check" section with the repository's real risks: read its auth, data access, payment or messaging code, deploy setup, and test layout first. Keep it short; generic advice belongs in the `pr-review` skill, not here.
@@ -64,3 +66,7 @@ Ask which tier when the user did not say. Do every step in one draft pull reques
 Callers pin `@v1`, a tag in `gocougs2020/claude-plugins` that is moved to a tested commit on `main` (see the README's "Releasing workflows"). Changes within `v1` reach every Full repository on their own. A breaking change (a renamed input, a new required secret or permission, a renamed job) ships as `v2`; upgrade a repository by diffing its callers against `assets/workflows/`, applying the changes, and keeping the lines step 5 changed. Plugin skills update on their own through the marketplace.
 
 A repository with the older full-copy workflows (long files with the prompts inline) upgrades by replacing them with the callers as in steps 4 and 5, and renaming the required check `review` to `review / review`.
+
+## Cloud sessions
+
+Cloud sessions (claude.ai/code) ignore the marketplaces in `.claude/settings.json`, so these plugins do not load there from the repository alone. Tell the user once to paste `templates/cloud-setup.sh` from `gocougs2020/claude-plugins` into their cloud environment's setup script. It covers every repository in that environment.

@@ -16,6 +16,10 @@ on:
         description: Node.js version for the repo's checks.
         type: string
         default: "22"
+      model:
+        description: Model for Claude. Empty uses claude-code-action's default.
+        type: string
+        default: ""
       max_turns:
         description: Turn cap for the run.
         type: number
@@ -75,6 +79,7 @@ jobs:
           plugin_marketplaces: ${{ inputs.plugin_marketplaces }}
           plugins: ${{ inputs.plugins }}
           claude_args: |
+            ${{ inputs.model && format('--model {0}', inputs.model) || '' }}
             --max-turns ${{ inputs.max_turns }}
             --allowedTools "${{ inputs.allowed_tools }}"
             --append-system-prompt "Follow AGENTS.md and REVIEW.md. When asked to fix Claude Review findings, read every open comment on the PR containing <!-- claude-review --> or another <!-- claude-*-review --> marker (for example a security review pass), fix each 🔴 finding, and fix 🟡 findings only when the fix is small and plainly correct. Install dependencies with the package manager the lockfile shows (npm ci --ignore-scripts, pnpm install --frozen-lockfile, or yarn install --frozen-lockfile), run the checks AGENTS.md names for each package you touch, and push only when they pass. Reply on each 🔴 thread with what changed, or why it was not changed."

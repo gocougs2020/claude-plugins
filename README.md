@@ -23,6 +23,10 @@ or `Full` for an important repository. The `install-review-loop` skill does the 
 
 This repository is public, so any Claude session (cloud or local) can fetch the marketplace without GitHub credentials or extra repository access. Review Loop Full still needs the Claude GitHub App on each repository that uses it, because its fixer pushes as the app.
 
+### Cloud sessions
+
+Cloud sessions (claude.ai/code, the mobile app) ignore the marketplaces a repository's `.claude/settings.json` declares, so the plugins do not load there from the repository alone. Paste [`templates/cloud-setup.sh`](templates/cloud-setup.sh) into your cloud environment's **Setup script** (claude.ai/code → environment selector → settings icon). It installs the plugins at user scope before Claude starts, for every repository in that environment. If the setup finishes quickly, later sessions start from a snapshot without running it again.
+
 ## Built-in commands the workflow uses
 
 These ship with Claude Code, so nothing here copies them:
@@ -52,6 +56,8 @@ Review Loop Full's pipeline lives here, in [`.github/workflows/`](.github/workfl
 | `claude-mention.yml` | `claude.yml` | `@claude` on a pull request or issue |
 
 Each repository keeps only the callers from [`install-review-loop/assets/workflows/`](plugins/review-loop/skills/install-review-loop/assets/workflows/): its triggers, its CI workflow names, its secrets, and a few inputs. They call `@v1`, so a change here reaches every repository when `v1` moves, and not before. These workflows never run in this repository.
+
+Useful caller inputs: `model` on any of them (empty keeps claude-code-action's default), `skip_docs_only` on the review (default `true`: a pull request that changes only Markdown, text, or lockfiles passes without a review; set `false` where Markdown is code, such as prompts), `plugin_marketplaces` and `plugins` to load review skills in CI.
 
 The callers pass `CLAUDE_CODE_OAUTH_TOKEN` (or `ANTHROPIC_API_KEY`) explicitly, since `secrets: inherit` only crosses repositories inside one organization or enterprise. Each job's check is named `<caller job> / <shared job>`, so the review's required check is `review / review`.
 

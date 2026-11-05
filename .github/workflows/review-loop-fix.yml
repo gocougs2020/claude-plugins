@@ -36,6 +36,10 @@ on:
         description: Node.js version for the repo's checks. Empty uses the REVIEW_LOOP_NODE_VERSION variable, then 22.
         type: string
         default: ""
+      model:
+        description: Model for Claude. Empty uses claude-code-action's default.
+        type: string
+        default: ""
       max_turns:
         description: Turn cap for the fixer.
         type: number
@@ -203,6 +207,7 @@ jobs:
             Never approve, merge, or close the pull request. Return how many
             findings you fixed, how many you declined, and a short summary.
           claude_args: |
+            ${{ inputs.model && format('--model {0}', inputs.model) || '' }}
             --max-turns ${{ inputs.max_turns }}
             --allowedTools "Read,Edit,Write,Grep,Glob,Skill,Bash(git add:*),Bash(git commit:*),Bash(git push origin HEAD:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git status:*),Bash(git merge-base:*),Bash(gh api:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh run view:*),Bash(npm ci:*),Bash(npm install:*),Bash(npm run:*),Bash(npm test:*),Bash(pnpm install:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm -r:*),Bash(pnpm --filter:*),Bash(yarn install:*),Bash(yarn run:*),Bash(yarn test:*)"
             --disallowedTools "Bash(git push --force:*),Bash(git push -f:*),Bash(git push --force-with-lease:*)"
