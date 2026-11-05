@@ -68,7 +68,7 @@ jobs:
           state=$(jq -r '.state' <<<"$pr_json")
           draft=$(jq -r '.draft' <<<"$pr_json")
           handled=$(gh api "repos/$REPO/issues/$PR/comments?per_page=100" --paginate \
-            --jq "[.[] | select(.body | contains(\"<!-- review-loop:handled $SHA\"))] | length" \
+            --jq "[.[] | select(.user.login == \"github-actions[bot]\" and (.body | contains(\"<!-- review-loop:handled $SHA\")))] | length" \
             | awk '{s += $1} END {print s + 0}')
           if [ "$head" != "$SHA" ] || [ "$head_ref" != "$BRANCH" ] || [ "$state" != "open" ] || [ "$draft" != "false" ] || [ "$handled" -gt 0 ]; then
             echo "Skipped: head=$head ref=$head_ref state=$state draft=$draft handled=$handled"
