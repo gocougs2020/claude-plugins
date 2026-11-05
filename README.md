@@ -4,7 +4,7 @@ Shared Claude Code plugins for gocougs2020 repositories. Turn them on in a repos
 
 | Plugin | What it adds |
 |---|---|
-| [`review-loop`](plugins/review-loop/) | `steward` (draft → review before each push → ready once → fix findings → merge when asked), `pr-review` (review and fix against the repo's `REVIEW.md`), `install-review-loop` (sets up a repository), and a hook that blocks `git push` until the pushed commit was reviewed |
+| [`review-loop`](plugins/review-loop/) | `steward` (draft → review before each push → ready once → fix findings → merge when asked), `pr-overlap` (catch overlap with other open pull requests), `pr-review` (review and fix against the repo's `REVIEW.md`), `install-review-loop` (sets up a repository), and a hook that blocks `git push` until the pushed commit was reviewed |
 | [`web-design`](plugins/web-design/) | `design-review`, Vercel's `web-design-guidelines` (with a WCAG 2.2 AA fallback), and Vercel's `vercel-react-best-practices` |
 
 Two official Anthropic plugins are turned on next to them:

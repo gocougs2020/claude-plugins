@@ -23,7 +23,11 @@ Ask which tier when the user did not say. Do every step in one draft pull reques
 1. **Turn on the plugins.** Create or merge `.claude/settings.json` with the content of `templates/settings.json` from the `gocougs2020/claude-plugins` repository.
    - Keep any settings already there.
    - Drop the `web-design` and `frontend-design` lines for a repository with no web UI.
-2. **Project rules.** Make sure an `AGENTS.md` or `CLAUDE.md` exists and names the repository's lint, test, and build commands. Add a short section if they are missing; do not rewrite an existing file.
+2. **Project rules.** Make sure an `AGENTS.md` or `CLAUDE.md` exists and names:
+   - the repository's lint, test, and build commands;
+   - the shared files many changes append to (route registration, config and secret lists, API specs, migrations or indexes), for `pr-overlap`.
+
+   Add a short section for anything missing. Do not rewrite an existing file.
 3. **Tell the user what only they can do:**
    - Install the Claude GitHub App on all repositories (github.com/apps/claude → Configure → All repositories). Once covers every repository.
    - Add the repository's Vercel project to Vercel Security Review (Vercel → Agent settings → Security Review). Vercel code review already covers every repository on the team.

@@ -7,6 +7,7 @@ Drives a pull request from first commit to merged, with as few paid review runs 
 | Skill | Use |
 |---|---|
 | `steward` | The process: review and fix before each push, open a draft, mark it ready once, handle Vercel Agent, Vercel Security Review, Claude Review, and CI findings, and merge only when asked. It detects the tier from the repository's workflows. |
+| `pr-overlap` | Before each push and when the default branch moves: merges it in and checks other open pull requests for overlap git does not flag (renamed names, shared data, shared lists), using any shared files the repository's `AGENTS.md` or `CLAUDE.md` lists. |
 | `pr-review` | Reviews the diff against `REVIEW.md` (or general defaults), verifies each finding against the code, fixes what it confirms, and records the reviewed commit. |
 | `install-review-loop` | Sets up a repository for Lite or Full, and upgrades Full's workflows. The workflow files and a `REVIEW.md` template are in its `assets/`. |
 

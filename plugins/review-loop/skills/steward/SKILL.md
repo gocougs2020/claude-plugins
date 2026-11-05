@@ -30,7 +30,7 @@ Each one is metered per run, so fewer pushes after ready means less cost.
 
 Commit locally as you go, and push in batches, not after each small fix.
 
-1. Merge the default branch, so you review and test what will merge.
+1. Run the `pr-overlap` skill: merge the default branch, so you review and test what will merge, and check other open pull requests for overlap.
 2. Run the checks `AGENTS.md` or `CLAUDE.md` names for what you changed: lint, tests, and a build when routes or bundling changed.
 3. Run `/simplify` on your changes to remove duplication, dead code, and needless abstraction.
 4. When the change touches auth, permissions, secrets, input handling, or data access, run `/security-review` and fix what it confirms.
@@ -72,7 +72,7 @@ To make a further change after that, convert it back to a draft first. On Full, 
 4. Reply once on each thread: what the fix changed, or the traced reason it is not a bug.
 5. Never skip, disable, or weaken a test to get green.
 
-When the default branch moves, merge it in with your next push. Push for it on its own only when there is a conflict.
+When another pull request merges into the default branch, run `pr-overlap` again and merge it in with your next push. Push for it on its own only when there is a conflict or an overlap that changes behavior.
 
 ## Merging
 
