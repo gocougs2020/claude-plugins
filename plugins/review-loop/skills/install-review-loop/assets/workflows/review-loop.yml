@@ -67,8 +67,10 @@ jobs:
             exit 0
           fi
 
+          # Trust only markers this workflow and the fixer posted, so a
+          # commenter cannot forge a handled or stopped state.
           markers=$(gh api "repos/$REPO/issues/$PR/comments?per_page=100" --paginate \
-            --jq '.[] | select(.body | contains("<!-- review-loop:")) | .body' \
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- review-loop:"))) | .body' \
             | grep -o '<!-- review-loop:[a-z]* [0-9a-f]*' || true)
           handled=$(grep '^<!-- review-loop:handled ' <<<"$markers" | awk '{print $3}' | sort -u || true)
 

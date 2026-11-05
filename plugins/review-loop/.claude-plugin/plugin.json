@@ -1,6 +1,6 @@
 {
   "name": "review-loop",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Drive a pull request to green: review and fix before each push, open drafts, mark ready once, let reviewers and Review Loop fix findings, and install Review Loop's GitHub workflows.",
   "author": {
     "name": "gocougs2020"
