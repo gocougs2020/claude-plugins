@@ -29,7 +29,7 @@ Ask which tier when the user did not say. Do every step in one draft pull reques
 
    Add a short section for anything missing. Do not rewrite an existing file.
 3. **Tell the user what only they can do:**
-   - Install the Claude GitHub App on all repositories (github.com/apps/claude → Configure → All repositories). Once covers every repository.
+   - For Full, install the Claude GitHub App on the repository (github.com/apps/claude → Configure). The plugin marketplace is public, so Lite needs no app access to it.
    - Add the repository's Vercel project to Vercel Security Review (Vercel → Agent settings → Security Review). Vercel code review already covers every repository on the team.
    - A repository with no Vercel project gets no Vercel reviews.
 
@@ -55,4 +55,4 @@ Ask which tier when the user did not say. Do every step in one draft pull reques
 
 ## Upgrading
 
-To upgrade a repository's workflows, diff its copies against `assets/workflows/` and apply the changes, keeping the lines step 5 changed. Plugin skills update on their own through the marketplace.
+To upgrade a repository's workflows, diff its copies against `assets/workflows/` and apply the changes, keeping the lines step 5 changed. The assets pin each action to a full commit SHA with its version in a comment; keep the pins when copying. Plugin skills update on their own through the marketplace.

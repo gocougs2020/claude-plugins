@@ -21,7 +21,7 @@ The easier way is to open a Claude session that has this repository and the targ
 
 or `Full` for an important repository. The `install-review-loop` skill does the rest and lists the steps only you can do. Lite needs nothing else in the repository. Full adds GitHub workflows and one secret.
 
-The marketplace lives in this private repository. Cloud sessions reach it through the Claude GitHub App, so install the app on all repositories (github.com/apps/claude → Configure → All repositories). Local sessions use your own git credentials.
+This repository is public, so any Claude session (cloud or local) can fetch the marketplace without GitHub credentials or extra repository access. Review Loop Full still needs the Claude GitHub App on each repository that uses it, because its fixer pushes as the app.
 
 ## Built-in commands the workflow uses
 
