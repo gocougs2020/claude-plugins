@@ -43,6 +43,8 @@ Ask which tier when the user did not say. Do every step in one draft pull reques
 5. **Match the repository:**
    - **CI names.** In `review-loop.yml`, set `on.workflow_run.workflows` to `Claude Review` plus the `name:` of each CI workflow the repository has.
    - **Node version.** In `claude.yml`, set `node-version` to the repository's Node version. For the fixer, tell the user to set the repository variable `REVIEW_LOOP_NODE_VERSION` if it is not 22.
+   - **Package manager.** Both workflows run `corepack enable`, so pnpm and yarn work when `package.json` has a `packageManager` field. If the repository uses pnpm or yarn without that field, add it (for example `"packageManager": "pnpm@10.0.0"`, matching the lockfile).
+   - **No CI.** If the repository has no CI workflows, `workflows` is just `["Claude Review"]`. Then the fixer's checks are its only test run, so the `AGENTS.md` commands matter more.
    - **Existing files.** If the repository already has a workflow with one of these names, compare it with the asset, keep its repository-specific lines, and say what you changed.
 6. **Write `REVIEW.md`** from `assets/REVIEW.md`. Replace the "Always check" section with the repository's real risks: read its auth, data access, payment or messaging code, deploy setup, and test layout first. Keep it short; generic advice belongs in the `pr-review` skill, not here.
 7. **Add one line** to `AGENTS.md` or `CLAUDE.md`: "Pull requests follow Review Loop Full (steward skill from the review-loop plugin)."
