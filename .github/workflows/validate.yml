@@ -60,7 +60,9 @@ jobs:
           : > "$stamp"
           # In GitHub Actions every push is allowed.
           [ -z "$(GITHUB_ACTIONS=true bash "$hook" <<<"$input")" ] || { echo "::error::Hook blocked a CI push."; exit 1; }
-          # Words "git push" inside a string are not a push.
+          # Words "git push" inside a string are not a push. The backticks are
+          # literal text in the hook input, not a command substitution.
+          # shellcheck disable=SC2016
           [ -z "$(env -u GITHUB_ACTIONS bash "$hook" <<<'{"tool_input":{"command":"echo '"'"'it allows `git push` only'"'"'"}}')" ] || { echo "::error::Hook blocked a command that only mentions git push."; exit 1; }
           # A command that does not push passes through.
           [ -z "$(env -u GITHUB_ACTIONS bash "$hook" <<<'{"tool_input":{"command":"git status"}}')" ] || { echo "::error::Hook blocked a non-push command."; exit 1; }
